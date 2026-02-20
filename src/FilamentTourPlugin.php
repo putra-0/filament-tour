@@ -16,7 +16,7 @@ class FilamentTourPlugin implements Plugin
     
     protected string $tourButtonColor = 'info';
     
-    protected string $tourButtonTooltip = 'الجولة التعريفية';
+    protected ?string $tourButtonTooltip = null;
 
     protected ?array $welcomeStep = null;
 
@@ -97,6 +97,14 @@ class FilamentTourPlugin implements Plugin
                 'primaryButtonTextColor' => $this->getPrimaryButtonTextColor(),
                 'secondaryButtonTextColor' => $this->getSecondaryButtonTextColor(),
                 'footerBorderColor' => $this->getFooterBorderColor(),
+                'translations' => [
+                    'buttons' => [
+                        'next' => __('filament-tour::filament-tour.buttons.next'),
+                        'previous' => __('filament-tour::filament-tour.buttons.previous'),
+                        'cancel' => __('filament-tour::filament-tour.buttons.cancel'),
+                        'complete' => __('filament-tour::filament-tour.buttons.complete'),
+                    ],
+                ]
             ])->render()
         );
     }
@@ -146,7 +154,7 @@ class FilamentTourPlugin implements Plugin
 
     public function getTourButtonTooltip(): string
     {
-        return $this->tourButtonTooltip;
+        return $this->tourButtonTooltip ?? __('filament-tour::filament-tour.tooltip');
     }
 
     public function shouldShowTourButton(): bool
@@ -170,12 +178,44 @@ class FilamentTourPlugin implements Plugin
 
     public function getWelcomeStep(): ?array
     {
-        return $this->welcomeStep;
+        return $this->welcomeStep ?? [
+            'id' => 'welcome',
+            'title' => __('filament-tour::filament-tour.welcome.title'),
+            'text' => __('filament-tour::filament-tour.welcome.text'),
+            'buttons' => [
+                [
+                    'text' => __('filament-tour::filament-tour.welcome.buttons.skip'),
+                    'action' => 'cancel',
+                    'secondary' => true,
+                ],
+                [
+                    'text' => __('filament-tour::filament-tour.welcome.buttons.start'),
+                    'action' => 'next',
+                    'secondary' => false,
+                ],
+            ],
+        ];
     }
 
     public function getFinishStep(): ?array
     {
-        return $this->finishStep;
+        return $this->finishStep ?? [
+            'id' => 'finish',
+            'title' => __('filament-tour::filament-tour.finish.title'),
+            'text' => __('filament-tour::filament-tour.finish.text'),
+            'buttons' => [
+                [
+                    'text' => __('filament-tour::filament-tour.finish.buttons.back'),
+                    'action' => 'back',
+                    'secondary' => true,
+                ],
+                [
+                    'text' => __('filament-tour::filament-tour.finish.buttons.finish'),
+                    'action' => 'complete',
+                    'secondary' => false,
+                ],
+            ],
+        ];
     }
 
     public function headerColor(string $color): static

@@ -2,33 +2,8 @@
 const Shepherd = window.Shepherd;
 
 // Static Tour Steps - Only Welcome and Finish
-const tourStepsData = [
-    // Welcome Step
-    {
-        id: 'welcome',
-        title: '👋 مرحباً بك في جولة النظام!',
-        text: '<strong>سنقوم بجولة شاملة لشرح جميع المميزات والأقسام في النظام المالي الخاص بك.</strong><br><br>الجولة تستغرق بضع دقائق فقط وستساعدك على فهم كل ميزة في النظام.',
-        attachTo: null,
-        position: 'center',
-        buttons: [
-            { text: 'تخطي الجولة', action: 'cancel', secondary: true },
-            { text: 'ابدأ الجولة', action: 'next', secondary: false }
-        ]
-    },
-    
-    // Final Step
-    {
-        id: 'finish',
-        title: 'تهانينا! انتهت الجولة',
-        text: '<strong>الآن أصبحت جاهزاً لاستخدام النظام!</strong><br><br>لقد تعرفت على جميع مميزات النظام.<br><br>يمكنك إعادة الجولة في أي وقت من خلال النقر على أيقونة 🎓 في الأعلى.',
-        attachTo: null,
-        position: 'center',
-        buttons: [
-            { text: 'السابق', action: 'back', secondary: true },
-            { text: 'إنهاء الجولة', action: 'complete', secondary: false }
-        ]
-    }
-];
+// Static Tour Steps - Fallback only
+const tourStepsData = [];
 
 // Initialize tour
 export function initializeShepherdTour(resumeFromStep = null) {
@@ -40,7 +15,7 @@ export function initializeShepherdTour(resumeFromStep = null) {
             scrollTo: { behavior: 'smooth', block: 'center' },
             cancelIcon: {
                 enabled: true,
-                label: 'إغلاق'
+                label: window.tourTranslations?.buttons?.cancel || 'Close'
             },
             modalOverlayOpeningRadius: 12,
             modalOverlayOpeningPadding: 10
@@ -168,15 +143,15 @@ export function initializeShepherdTour(resumeFromStep = null) {
     const dynamicSteps = window.dynamicTourSteps || [];
     
     // Use custom welcome/finish steps if provided, otherwise use defaults
-    const welcomeStep = window.customWelcomeStep || tourStepsData[0];
-    const finishStep = window.customFinishStep || tourStepsData[1];
+    // Use custom welcome/finish steps passed from PHP
+    const welcomeStep = window.customWelcomeStep;
+    const finishStep = window.customFinishStep;
     
     // Build complete steps array: Welcome → Dynamic Steps → Finish
-    const allSteps = [
-        welcomeStep,      // Welcome step (customizable)
-        ...dynamicSteps,  // All dynamic steps from resources
-        finishStep        // Finish step (customizable)
-    ];
+    const allSteps = [];
+    if (welcomeStep) allSteps.push(welcomeStep);
+    allSteps.push(...dynamicSteps);
+    if (finishStep) allSteps.push(finishStep);
 
     // Add steps from combined data
     allSteps.forEach((stepData, index) => {
@@ -248,8 +223,8 @@ export function initializeShepherdTour(resumeFromStep = null) {
         // Build buttons
         const buttons = [];
         const stepButtons = stepData.buttons || [
-            { text: 'السابق', action: 'back', secondary: true },
-            { text: 'التالي', action: 'next', secondary: false }
+            { text: window.tourTranslations?.buttons?.previous || 'Previous', action: 'back', secondary: true },
+            { text: window.tourTranslations?.buttons?.next || 'Next', action: 'next', secondary: false }
         ];
 
         stepButtons.forEach(btnData => {
@@ -360,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (error) {
                 console.error('Error starting tour:', error);
-                alert('حدث خطأ أثناء بدء الجولة. يرجى المحاولة مرة أخرى.');
+                alert('An error occurred while starting the tour. Please try again.');
             }
         });
     });

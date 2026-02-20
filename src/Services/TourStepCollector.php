@@ -56,8 +56,8 @@ class TourStepCollector
                 'sort' => $sort,
                 'url' => $url,
                 'buttons' => [
-                    ['text' => 'السابق', 'action' => 'back', 'secondary' => true],
-                    ['text' => 'التالي', 'action' => 'next', 'secondary' => false],
+                    ['text' => __('filament-tour::filament-tour.buttons.previous'), 'action' => 'back', 'secondary' => true],
+                    ['text' => __('filament-tour::filament-tour.buttons.next'), 'action' => 'next', 'secondary' => false],
                 ],
             ];
         }
@@ -82,7 +82,7 @@ class TourStepCollector
         }
 
         if (!empty($features)) {
-            $text .= 'يمكنك:<br>';
+            $text .= __('filament-tour::filament-tour.you_can') . '<br>';
             foreach ($features as $feature) {
                 $text .= '• ' . $feature . '<br>';
             }

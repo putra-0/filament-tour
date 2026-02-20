@@ -29,4 +29,6 @@ return [
         'cancel' => 'إغلاق',
         'complete' => 'إنهاء',
     ],
+
+    'you_can' => 'يمكنك:',
 ];

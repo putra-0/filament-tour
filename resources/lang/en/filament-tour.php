@@ -29,4 +29,6 @@ return [
         'cancel' => 'Close',
         'complete' => 'Finish',
     ],
+
+    'you_can' => 'You can:',
 ];
