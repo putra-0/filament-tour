@@ -60,6 +60,16 @@ class TourStepCollector
                     ['text' => __('filament-tour::filament-tour.buttons.next'), 'action' => 'next', 'secondary' => false],
                 ],
             ];
+
+            $customSteps = $resource::getTourSteps();
+            foreach ($customSteps as $customStep) {
+                $steps[] = array_merge([
+                    "buttons" => [
+                        ["text" => __("filament-tour::filament-tour.buttons.previous"), "action" => "back", "secondary" => true],
+                        ["text" => __("filament-tour::filament-tour.buttons.next"), "action" => "next", "secondary" => false],
+                    ],
+                ], $customStep);
+            }
         }
 
         // Sort steps by sort order (ascending)
@@ -115,10 +125,9 @@ class TourStepCollector
             $stepId = $resource::getTourStepId();
             $label = $resource::getNavigationLabel();
 
-            $map[$stepId] = $label;
+            $map[$label] = $stepId;
         }
 
         return $map;
     }
 }
-

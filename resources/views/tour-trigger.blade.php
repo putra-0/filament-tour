@@ -78,61 +78,39 @@
 </script>
 
 <script>
-    // Add data-tour attributes to navigation items after DOM loads
-    document.addEventListener('DOMContentLoaded', function() {
-        // Function to add data-tour attribute to navigation items
-        function addTourAttributes() {
-            // Find navigation items by their text content
-            const navItems = document.querySelectorAll(
-                '.fi-sidebar-item, .fi-sidebar-group, [role="menuitem"]');
+    // Inject data-tour attributes on sidebar items by URL matching
+    (function () {
+        function applyTourAttrs() {
+            var steps = window.dynamicTourSteps || [];
+            if (!steps.length) return;
 
-            navItems.forEach(item => {
-                const text = item.textContent.trim();
-                const link = item.querySelector('a');
-                const target = link || item;
+            steps.forEach(function(step) {
+                if (!step.url || !step.attachTo || step.attachTo.indexOf('[data-tour') === -1) return;
+                var path = new URL(step.url, window.location.origin).pathname.replace(/\/$/, '');
 
-                // Use dynamic navigation map from resources
-                const navigationMap = window.navigationMap || {};
-
-                // Check dynamic mappings first
-                let matched = false;
-                Object.entries(navigationMap).forEach(([tourId, navText]) => {
-                    if (text.includes(navText) || text === navText) {
-                        target.setAttribute('data-tour', tourId);
-                        matched = true;
+                document.querySelectorAll('.fi-sidebar-item a[href]').forEach(function(a) {
+                    var href = (a.getAttribute('href') || '').replace(window.location.origin, '').replace(/\/$/, '');
+                    if (href === path || href.startsWith(path + '?')) {
+                        var item = a.closest('.fi-sidebar-item');
+                        if (item && !item.hasAttribute('data-tour')) {
+                            item.setAttribute('data-tour', step.id);
+                        }
                     }
                 });
-
-                // If not matched, try static fallback mappings
-                if (!matched) {
-                    // Custom fallback logic can be added here
-                }
-            });
-
-        }
-
-        // Initial run
-        setTimeout(addTourAttributes, 500);
-
-        // Re-run when Livewire updates the DOM (for SPAs)
-        document.addEventListener('livewire:navigated', () => {
-            setTimeout(addTourAttributes, 300);
-        });
-
-        // Fallback: Watch for DOM mutations
-        const observer = new MutationObserver(function(mutations) {
-            // Debounce the function call
-            clearTimeout(window.tourAttributeTimeout);
-            window.tourAttributeTimeout = setTimeout(addTourAttributes, 200);
-        });
-
-        const sidebar = document.querySelector('.fi-sidebar') || document.querySelector('.fi-sidebar-item') ||
-            document.querySelector('.fi-sidebar-sub-group-items');
-        if (sidebar) {
-            observer.observe(sidebar, {
-                childList: true,
-                subtree: true
             });
         }
-    });
+        window._applyTourAttrs = applyTourAttrs;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(applyTourAttrs, 400);
+            setTimeout(applyTourAttrs, 1000);
+        });
+
+        document.addEventListener('livewire:navigated', function() {
+            requestAnimationFrame(applyTourAttrs);
+            setTimeout(applyTourAttrs, 200);
+            setTimeout(applyTourAttrs, 600);
+            setTimeout(applyTourAttrs, 1200);
+        });
+    })();
 </script>

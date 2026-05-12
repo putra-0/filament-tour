@@ -17,10 +17,11 @@ class FilamentTourServiceProvider extends PackageServiceProvider
     {
         $package
             ->name(static::$name)
-            ->hasViews();
+            ->hasViews()
+            ->hasTranslations();
     }
 
-      public function packageBooted(): void
+    public function packageBooted(): void
     {
         // Register CSS and JS assets with a safe fallback if the built dist file is missing
         $cssPath = __DIR__ . '/../resources/css/shepherd-tour.css';
@@ -41,4 +42,3 @@ class FilamentTourServiceProvider extends PackageServiceProvider
         FilamentAsset::register($assets, package: 'yacoubalhaidari/filament-tour');
     }
 }
-
