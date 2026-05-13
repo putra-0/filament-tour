@@ -78,6 +78,17 @@
     window.tourDisplayMode = @json($displayMode ?? 'always');
 </script>
 
+@if(request()->routeIs('filament.admin.auth.login'))
+<script>
+    localStorage.removeItem('shepherd-tour-completed');
+    localStorage.removeItem('shepherd-tour-completed-at');
+    localStorage.removeItem('shepherd-tour-completed-permanent');
+    localStorage.removeItem('shepherd-tour-seen-steps');
+    localStorage.removeItem('shepherd-tour-in-progress');
+    localStorage.removeItem('shepherd-tour-current-step');
+</script>
+@endif
+
 <script>
     // Inject data-tour attributes on sidebar items by URL matching
     (function () {
