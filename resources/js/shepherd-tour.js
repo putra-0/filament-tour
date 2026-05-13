@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const permanentCompleted = localStorage.getItem('shepherd-tour-completed-permanent');
 
     if (permanentCompleted === 'true') {
-        console.log('🔒 Tour permanently completed, skipping auto-resume');
+        console.log('🔒 Tour permanently completed, skipping');
         return;
     }
 
@@ -399,6 +399,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.removeItem('shepherd-tour-current-step');
             }
         }, 1500); // Wait for page to fully load
+    } else {
+        const tourCompleted = localStorage.getItem('shepherd-tour-completed');
+
+        if (!tourCompleted) {
+            setTimeout(() => {
+                try {
+                    const tour = initializeShepherdTour();
+                    if (tour.steps.length <= 2) {
+                        console.log('⚠️ No dynamic steps available, skipping auto-start');
+                        return;
+                    }
+                    console.log('🚀 Auto-starting tour (first visit)');
+                    tour.start();
+                } catch (error) {
+                    console.error('Error auto-starting tour:', error);
+                }
+            }, 2000);
+        }
     }
 });
 
