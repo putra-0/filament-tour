@@ -83,7 +83,6 @@
     localStorage.removeItem('shepherd-tour-completed');
     localStorage.removeItem('shepherd-tour-completed-at');
     localStorage.removeItem('shepherd-tour-completed-permanent');
-    localStorage.removeItem('shepherd-tour-seen-steps');
     localStorage.removeItem('shepherd-tour-in-progress');
     localStorage.removeItem('shepherd-tour-current-step');
 </script>
