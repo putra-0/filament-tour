@@ -49,6 +49,16 @@ export function initializeShepherdTour(resumeFromStep = null) {
             
             localStorage.setItem('shepherd-tour-current-step', stepId);
             localStorage.setItem('shepherd-tour-in-progress', 'true');
+
+            const currentStepData = allSteps.find(s => s.id === stepId);
+            if (currentStepData && currentStepData.display_mode === 'once') {
+                const seenSteps = JSON.parse(localStorage.getItem('shepherd-tour-seen-steps') || '[]');
+                if (!seenSteps.includes(stepId)) {
+                    seenSteps.push(stepId);
+                    localStorage.setItem('shepherd-tour-seen-steps', JSON.stringify(seenSteps));
+                    console.log(`👁️ Marked "once" step as seen: ${stepId}`);
+                }
+            }
             
             // Remove previous tour highlighting
             const previousHighlighted = document.querySelectorAll('.shepherd-tour-active-nav');
@@ -105,6 +115,11 @@ export function initializeShepherdTour(resumeFromStep = null) {
         localStorage.removeItem('shepherd-tour-in-progress');
         localStorage.setItem('shepherd-tour-completed', 'true');
         localStorage.setItem('shepherd-tour-completed-at', new Date().toISOString());
+
+        if ((window.tourDisplayMode || 'always') === 'once') {
+            localStorage.setItem('shepherd-tour-completed-permanent', 'true');
+            console.log('🔒 Tour permanently completed (display mode: once)');
+        }
         
         // Remove tour highlighting
         document.querySelectorAll('.shepherd-tour-active-nav').forEach(item => {
@@ -148,9 +163,16 @@ export function initializeShepherdTour(resumeFromStep = null) {
     const finishStep = window.customFinishStep;
     
     // Build complete steps array: Welcome → Dynamic Steps → Finish
+    const seenSteps = JSON.parse(localStorage.getItem('shepherd-tour-seen-steps') || '[]');
     const allSteps = [];
     if (welcomeStep) allSteps.push(welcomeStep);
-    allSteps.push(...dynamicSteps);
+    dynamicSteps.forEach(step => {
+        if (step.display_mode === 'once' && seenSteps.includes(step.id)) {
+            console.log(`⏭️ Skipping seen "once" step: ${step.id}`);
+            return;
+        }
+        allSteps.push(step);
+    });
     if (finishStep) allSteps.push(finishStep);
 
     // Add steps from combined data
@@ -319,6 +341,13 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             
             try {
+                const permanentCompleted = localStorage.getItem('shepherd-tour-completed-permanent');
+                if (permanentCompleted === 'true') {
+                    console.log('🔒 Tour permanently completed, resetting for fresh start');
+                    localStorage.removeItem('shepherd-tour-completed-permanent');
+                    localStorage.removeItem('shepherd-tour-seen-steps');
+                }
+
                 const tour = initializeShepherdTour();
                 
                 // Check if there's a tour in progress
@@ -341,13 +370,26 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Auto-resume tour if in progress (after page navigation)
+    const permanentCompleted = localStorage.getItem('shepherd-tour-completed-permanent');
+
+    if (permanentCompleted === 'true') {
+        console.log('🔒 Tour permanently completed, skipping auto-resume');
+        return;
+    }
+
     const inProgress = localStorage.getItem('shepherd-tour-in-progress');
     const currentStepId = localStorage.getItem('shepherd-tour-current-step');
-    
+
     if (inProgress === 'true' && currentStepId) {
         setTimeout(() => {
             try {
                 const tour = initializeShepherdTour();
+                if (tour.steps.length <= 2) {
+                    console.log('⚠️ No un-seen dynamic steps remaining, cancelling tour');
+                    localStorage.removeItem('shepherd-tour-in-progress');
+                    localStorage.removeItem('shepherd-tour-current-step');
+                    return;
+                }
                 console.log(`Auto-resuming tour at step: ${currentStepId}`);
                 tour.show(currentStepId);
             } catch (error) {

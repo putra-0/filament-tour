@@ -46,6 +46,8 @@ class FilamentTourPlugin implements Plugin
 
     protected ?string $footerBorderColor = null;
 
+    protected string $displayMode = 'always';
+
     public static function make(): static
     {
         return app(static::class);
@@ -82,7 +84,8 @@ class FilamentTourPlugin implements Plugin
             PanelsRenderHook::BODY_START,
             fn (): string => view('filament-tour::tour-trigger', [
                 'navigationMap' => \YacoubAlhaidari\FilamentTour\Services\TourStepCollector::getNavigationMap(),
-                'tourSteps' => \YacoubAlhaidari\FilamentTour\Services\TourStepCollector::collectSteps(),
+                'tourSteps' => \YacoubAlhaidari\FilamentTour\Services\TourStepCollector::collectSteps($this->getDisplayMode()),
+                'displayMode' => $this->getDisplayMode(),
                 'welcomeStep' => $this->getWelcomeStep(),
                 'finishStep' => $this->getFinishStep(),
                 'headerColor' => $this->getHeaderColor(),
@@ -360,6 +363,18 @@ class FilamentTourPlugin implements Plugin
     public function getFooterBorderColor(): ?string
     {
         return $this->footerBorderColor;
+    }
+
+    public function displayMode(string $mode): static
+    {
+        $this->displayMode = $mode;
+
+        return $this;
+    }
+
+    public function getDisplayMode(): string
+    {
+        return $this->displayMode;
     }
 }
 

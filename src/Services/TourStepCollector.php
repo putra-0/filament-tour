@@ -10,7 +10,7 @@ class TourStepCollector
     /**
      * Collect tour steps from all registered resources
      */
-    public static function collectSteps(): array
+    public static function collectSteps(string $globalDisplayMode = 'always'): array
     {
         $steps = [];
         $panel = Filament::getCurrentPanel();
@@ -36,6 +36,9 @@ class TourStepCollector
             $position = $resource::getTourStepPosition();
             $sort = $resource::getTourStepSort();
 
+            $resourceDisplayMode = $resource::getTourDisplayMode();
+            $effectiveDisplayMode = $resourceDisplayMode ?? $globalDisplayMode;
+
             // Get resource URL
             $url = null;
             try {
@@ -55,6 +58,7 @@ class TourStepCollector
                 'position' => $position,
                 'sort' => $sort,
                 'url' => $url,
+                'display_mode' => $effectiveDisplayMode,
                 'buttons' => [
                     ['text' => __('filament-tour::filament-tour.buttons.previous'), 'action' => 'back', 'secondary' => true],
                     ['text' => __('filament-tour::filament-tour.buttons.next'), 'action' => 'next', 'secondary' => false],
@@ -63,7 +67,9 @@ class TourStepCollector
 
             $customSteps = $resource::getTourSteps();
             foreach ($customSteps as $customStep) {
+                $customDisplayMode = $customStep['display_mode'] ?? $effectiveDisplayMode;
                 $steps[] = array_merge([
+                    "display_mode" => $customDisplayMode,
                     "buttons" => [
                         ["text" => __("filament-tour::filament-tour.buttons.previous"), "action" => "back", "secondary" => true],
                         ["text" => __("filament-tour::filament-tour.buttons.next"), "action" => "next", "secondary" => false],

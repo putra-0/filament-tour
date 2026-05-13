@@ -75,6 +75,7 @@
     window.customWelcomeStep = @json($welcomeStep ?? null);
     window.customFinishStep = @json($finishStep ?? null);
     window.tourTranslations = @json($translations ?? []);
+    window.tourDisplayMode = @json($displayMode ?? 'always');
 </script>
 
 <script>

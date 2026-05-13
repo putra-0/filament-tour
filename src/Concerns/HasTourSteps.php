@@ -76,5 +76,14 @@ trait HasTourSteps
     {
         return !empty(static::getTourStepId());
     }
+
+    /**
+     * Get the display mode for this resource's tour step
+     * Returns 'once', 'always', or null (defer to global setting)
+     */
+    public static function getTourDisplayMode(): ?string
+    {
+        return null;
+    }
 }
 
