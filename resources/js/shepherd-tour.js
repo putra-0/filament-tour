@@ -189,57 +189,57 @@ export function initializeShepherdTour(resumeFromStep = null) {
                 return new Promise((resolve) => {
                     const currentUrl = window.location.pathname;
                     const targetUrl = new URL(stepData.url, window.location.origin).pathname;
-                    
+
                     console.log(`\n🚀 Navigation Check for step: ${stepData.id}`);
                     console.log(`   Current URL: ${currentUrl}`);
                     console.log(`   Target URL: ${targetUrl}`);
-                    
+
                     // Check if we're already on the target page
                     if (currentUrl !== targetUrl) {
                         console.log(`   ⚡ Navigating to: ${stepData.url}`);
-                        
+
                         // Use Livewire navigate if available (SPA mode)
                         if (typeof Livewire !== 'undefined' && Livewire.navigate) {
                             Livewire.navigate(stepData.url);
-                            
+
                             // Wait for Livewire navigation to complete
                             document.addEventListener('livewire:navigated', function handler() {
                                 document.removeEventListener('livewire:navigated', handler);
-                                console.log(`   ✅ Navigation completed, re-detecting elements...`);
-                                setTimeout(() => {
-                                    autoDetectNavigationElements();
-                                    resolve();
-                                }, 800);
+                                tour.modal = null;
+                                if (window._applyTourAttrs) window._applyTourAttrs();
+                                var attempts = 0, max = 25;
+                                var poll = setInterval(function() {
+                                    attempts++;
+                                    if (window._applyTourAttrs) window._applyTourAttrs();
+                                    var el = document.querySelector(stepData.attachTo);
+                                    if (el || attempts >= max) {
+                                        clearInterval(poll);
+                                        resolve();
+                                    }
+                                }, 200);
                             }, { once: true });
                         } else {
                             // Fallback to regular navigation
                             window.location.href = stepData.url;
                         }
                     } else {
-                        console.log(`   ✅ Already on target page`);
-                        // Already on the page, re-run detection to be sure
-                        setTimeout(() => {
-                            autoDetectNavigationElements();
-                            resolve();
-                        }, 300);
+                        if (window._applyTourAttrs) window._applyTourAttrs();
+                        var poll = setInterval(function() {
+                            var el = document.querySelector(stepData.attachTo);
+                            if (el) { clearInterval(poll); resolve(); }
+                        }, 200);
+                        setTimeout(function() { clearInterval(poll); resolve(); }, 5000);
                     }
                 });
             };
         }
 
-        // Auto-detect and attach to elements
+        // Attach to elements — pass selector string so Shepherd resolves it at display time
         if (stepData.attachTo) {
-            const element = document.querySelector(stepData.attachTo);
-            if (element) {
-                stepConfig.attachTo = {
-                    element: element,
-                    on: stepData.position || 'right'
-                };
-                console.log(`Found element for step ${stepData.id}`);
-            } else {
-                console.log(`Element not found for step ${stepData.id}, showing in center`);
-                // Show in center if element not found
-            }
+            stepConfig.attachTo = {
+                element: stepData.attachTo,
+                on: stepData.position || 'right'
+            };
         }
 
         // Build buttons
@@ -280,33 +280,29 @@ export function initializeShepherdTour(resumeFromStep = null) {
 
 // Auto-detect navigation elements and add data-tour attributes
 function autoDetectNavigationElements() {
-    console.log('\n🔍 Auto-detecting navigation elements...');
-    
-    // Use dynamic navigation map from resources (passed from PHP)
-    // navigationMap format: { "navigationLabel": "tourStepId" }
-    const navigationMap = window.navigationMap || {};
-    console.log('   Navigation Map:', navigationMap);
+    // Use the URL-based matching from the inline script (more reliable)
+    if (window._applyTourAttrs) {
+        window._applyTourAttrs();
+    }
 
-    // Find all navigation items
+    // Also match by navigation label as fallback
+    const navigationMap = window.navigationMap || {};
+    if (!Object.keys(navigationMap).length) return;
+
     const navItems = document.querySelectorAll('.fi-sidebar-item, .fi-sidebar-group, [role="menuitem"], a[href*="/admin"]');
-    console.log(`   Found ${navItems.length} navigation items`);
-    
-    let matchedCount = 0;
+
     navItems.forEach(item => {
         const text = item.textContent.trim();
         const link = item.querySelector('a') || item;
-        
-        // Check each mapping: navLabel => stepId
+
         Object.entries(navigationMap).forEach(([navLabel, stepId]) => {
             if (text.includes(navLabel) || text === navLabel) {
-                link.setAttribute('data-tour', stepId);
-                matchedCount++;
-                console.log(`   ✅ Matched: "${navLabel}" → [data-tour="${stepId}"]`);
+                if (!link.hasAttribute('data-tour')) {
+                    link.setAttribute('data-tour', stepId);
+                }
             }
         });
     });
-    
-    console.log(`   Total matched: ${matchedCount} items\n`);
 }
 
 // Auto-initialize when DOM is ready
